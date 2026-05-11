@@ -1,85 +1,105 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
+
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const BOT_TOKEN = Deno.env.get("TELEGRAM_BOT_TOKEN")!;
+const CHAT_ID = Deno.env.get("TELEGRAM_CHAT_ID")!;
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const SUPABASE_URL = "https://qwwytgkbeatehqtphzfd.supabase.co";
-const SERVICE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF3d3l0Z2tiZWF0ZWhxdHBoemZkIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3ODAwMzAxNywiZXhwIjoyMDkzNTc5MDE3fQ.zhzikwejpUnIVbr2KnvzkY5Qm0OmL_k8fcbvf7zmJD0"; 
-const BOT_TOKEN = "8684581925:AAE1KX40c-SkyPGRxydJNhClSKuZjlu1CSM";
-const CHAT_ID = "7622102612";
-
 serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
+  // Обработка preflight запросов браузера
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
+  }
 
   try {
     const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
     const body = await req.json();
 
-    // Обработка кнопок из Telegram (Принять/Отклонить)
+    // 1. ОБРАБОТКА ПРОВЕРКИ СТАТУСА
+    if (body.type === "status") {
+      const { data, error } = await supabase
+        .from("leads")
+        .select("id, status")
+        .eq("id", body.id)
+        .single();
+
+      if (error || !data) return new Response(JSON.stringify({ status: "not_found" }), { headers: corsHeaders });
+      return new Response(JSON.stringify(data), { headers: corsHeaders });
+    }
+
+    // 2. ОБРАБОТКА ОБРАТНОГО ВЫЗОВА ОТ БОТА (Кнопки "Принять/Отклонить")
     if (body.callback_query) {
-      const [action, leadId] = body.callback_query.data.split("_");
+      const cb = body.callback_query;
+      const [action, orderId] = cb.data.split(":");
       const newStatus = action === "accept" ? "accepted" : "rejected";
-      const statusText = action === "accept" ? "✅ ПРИНЯТА" : "❌ ОТКЛОНЕНА";
 
-      await supabase.from("leads").update({ status: newStatus }).eq("id", leadId);
+      await supabase.from("leads").update({ status: newStatus }).eq("id", orderId);
 
+      const statusText = action === "accept" ? "✅ ПРИНЯТО" : "❌ ОТКЛОНЕНО";
+      
       await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/editMessageText`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          chat_id: body.callback_query.message.chat.id,
-          message_id: body.callback_query.message.message_id,
-          text: body.callback_query.message.text + `\n\n📢 Статус изменен: ${statusText}`,
+          chat_id: CHAT_ID,
+          message_id: cb.message.message_id,
+          text: `${cb.message.text}\n\nИТОГ: ${statusText}`
         })
       });
-      return new Response("ok");
+
+      return new Response(JSON.stringify({ ok: true }), { headers: corsHeaders });
     }
 
-    // Проверка статуса (для кнопки на сайте)
-    if (body.type === "status") {
-      const { data } = await supabase.from("leads").select("*").eq("id", body.id).maybeSingle();
-      return new Response(JSON.stringify(data || { status: "not_found" }), { headers: corsHeaders });
-    }
+    // 3. ОБРАБОТКА НОВОЙ ЗАЯВКИ (ВАЛИДАЦИЯ)
+    const { name, phone, service, message } = body;
 
-    // Новая заявка с сайта
-    const id = Math.floor(100000 + Math.random() * 900000).toString();
-    
-    const { error: dbError } = await supabase.from("leads").insert([{ 
-      id, 
-      name: body.name, 
-      phone: body.phone, 
-      service: body.service, 
-      message: body.message, 
-      status: 'pending' 
-    }]);
+    if (!name || name.trim().length < 2) throw new Error("Введите корректное имя");
+    if (!phone || !/^\+7\d{10}$/.test(phone)) throw new Error("Неверный формат телефона (+7XXXXXXXXXX)");
+    if (!service) throw new Error("Выберите услугу");
+    if (!message || message.trim().length < 5) throw new Error("Опишите вопрос подробнее");
+
+    // Сохранение в базу
+    const { data, error: dbError } = await supabase
+      .from("leads")
+      .insert([{ name, phone, service, message, status: "pending" }])
+      .select()
+      .single();
 
     if (dbError) throw dbError;
 
-    // Текст сообщения в Telegram
-    const tgText = `👷 *Новая заявка*\n\n🆔 ID: ${id}\n👤 Имя: ${body.name}\n📞 Тел: ${body.phone}\n📂 Услуга: ${body.service}\n📝 Вопрос: ${body.message}`;
-
+    // Отправка уведомления в Telegram
+    const text = `🚀 НОВАЯ ЗАЯВКА #${data.id}\n👤 Имя: ${name}\n📞 Тел: ${phone}\n🛠 Услуга: ${service}\n📝 Вопрос: ${message}`;
+    
     await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         chat_id: CHAT_ID,
-        text: tgText,
-        parse_mode: "Markdown",
+        text: text,
         reply_markup: {
           inline_keyboard: [[
-            { text: "✅ Принять", callback_data: `accept_${id}` },
-            { text: "❌ Отклонить", callback_data: `reject_${id}` }
+            { text: "✅ Принять", callback_data: `accept:${data.id}` },
+            { text: "❌ Отклонить", callback_data: `reject:${data.id}` }
           ]]
         }
       })
     });
 
-    return new Response(JSON.stringify({ id }), { headers: corsHeaders });
+    return new Response(JSON.stringify({ id: data.id }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 200,
+    });
 
-  } catch (err) {
-    return new Response(JSON.stringify({ error: err.message }), { headers: corsHeaders, status: 400 });
+  } catch (error) {
+    return new Response(JSON.stringify({ error: error.message }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 400,
+    });
   }
-});
+})
