@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Migration Help | Professional</title>
+    <title>Migration Help | Premium Consulting</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
         :root {
             --neon: #00ffa3;
             --neon-secondary: #00d1ff;
             --bg: #02060f;
-            --glass: rgba(255, 255, 255, 0.04);
-            --border: rgba(0, 255, 163, 0.15);
+            --glass: rgba(255, 255, 255, 0.03);
+            --border: rgba(0, 255, 163, 0.2);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
@@ -20,73 +20,70 @@
             background: var(--bg);
             color: #fff;
             min-height: 100vh;
+            overflow-x: hidden;
             display: flex;
             flex-direction: column;
             align-items: center;
-            overflow-x: hidden;
         }
 
-        /* Фоновая сетка */
         .cyber-bg {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
             z-index: -1;
             background: 
-                linear-gradient(rgba(0, 255, 163, 0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 255, 163, 0.03) 1px, transparent 1px);
-            background-size: 40px 40px;
+                linear-gradient(rgba(0, 255, 163, 0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 163, 0.02) 1px, transparent 1px);
+            background-size: 50px 50px;
         }
 
-        header { padding: 50px 20px 30px; text-align: center; }
+        .glow-sphere {
+            position: absolute;
+            width: 600px; height: 600px;
+            background: radial-gradient(circle, rgba(0, 255, 163, 0.1) 0%, transparent 70%);
+            top: -200px; right: -100px;
+            animation: pulse 8s infinite alternate;
+        }
+
+        @keyframes pulse { from { opacity: 0.5; transform: scale(1); } to { opacity: 1; transform: scale(1.2); } }
+
+        header { padding: 40px; text-align: center; z-index: 10; }
         header h1 {
             font-family: 'Orbitron', sans-serif;
-            font-size: 26px;
-            letter-spacing: 5px;
+            font-size: 28px;
+            letter-spacing: 6px;
             color: var(--neon);
-            text-shadow: 0 0 20px rgba(0, 255, 163, 0.4);
-            text-transform: uppercase;
+            text-shadow: 0 0 15px var(--neon);
         }
 
-        .container { width: 100%; max-width: 480px; padding: 20px; }
+        .container { width: 100%; max-width: 500px; padding: 20px; z-index: 10; }
 
-        /* Статичная карточка без 3D наклона */
         .main-card {
             background: var(--glass);
-            backdrop-filter: blur(25px);
-            border-radius: 24px;
+            backdrop-filter: blur(20px);
+            border-radius: 25px;
             border: 1px solid var(--border);
             padding: 35px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
-            position: relative;
+            box-shadow: 0 0 40px rgba(0,0,0,0.5);
+            transition: transform 0.1s ease-out;
+            perspective: 1000px;
         }
 
-        h2 { 
-            font-family: 'Orbitron', sans-serif; 
-            font-size: 14px; 
-            margin-bottom: 30px; 
-            text-align: center; 
-            color: #fff; 
-            opacity: 0.7;
-            letter-spacing: 2px;
-        }
+        h2 { font-family: 'Orbitron', sans-serif; font-size: 16px; margin-bottom: 25px; text-align: center; color: #fff; opacity: 0.8; }
 
-        form { display: flex; flex-direction: column; gap: 16px; }
+        form { display: flex; flex-direction: column; gap: 15px; }
 
         input, select, textarea {
             background: rgba(0,0,0,0.4);
-            border: 1px solid rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.1);
             padding: 16px;
             border-radius: 12px;
             color: #fff;
             font-size: 14px;
             outline: none;
-            transition: 0.2s;
+            transition: 0.3s;
         }
 
-        input:focus, select:focus, textarea:focus { 
-            border-color: var(--neon); 
-            background: rgba(0, 255, 163, 0.02);
-        }
+        input:focus, select:focus, textarea:focus { border-color: var(--neon); box-shadow: 0 0 10px rgba(0, 255, 163, 0.2); }
 
         select option { background: #0a192f; color: #fff; }
 
@@ -94,15 +91,14 @@
 
         .disclaimer {
             background: rgba(255, 171, 0, 0.05);
-            border: 1px solid rgba(255, 171, 0, 0.1);
-            padding: 14px;
+            border: 1px solid rgba(255, 171, 0, 0.15);
+            padding: 12px;
             border-radius: 10px;
-            display: flex; gap: 10px;
+            display: flex; gap: 10px; align-items: flex-start;
         }
-        .disclaimer label { font-size: 10px; color: #ffab00; line-height: 1.5; }
+        .disclaimer label { font-size: 10px; color: #ffab00; line-height: 1.4; cursor: pointer; }
 
         .captcha-box {
-            background: rgba(0,0,0,0.2);
             border: 1px dashed var(--border);
             border-radius: 12px;
             padding: 15px;
@@ -110,18 +106,17 @@
         }
         #captchaTxt {
             font-family: 'Orbitron', sans-serif;
-            font-size: 24px;
+            font-size: 22px;
             color: var(--neon);
-            letter-spacing: 12px;
+            letter-spacing: 8px;
             margin-bottom: 10px;
             user-select: none;
-            opacity: 0.8;
-            font-style: italic;
+            text-decoration: line-through;
         }
 
         button {
-            background: linear-gradient(135deg, var(--neon), var(--neon-secondary));
-            color: #02060f;
+            background: linear-gradient(90deg, var(--neon), var(--neon-secondary));
+            color: #000;
             padding: 18px;
             border: none;
             border-radius: 12px;
@@ -130,22 +125,14 @@
             cursor: pointer;
             transition: 0.3s;
             text-transform: uppercase;
-            letter-spacing: 1px;
             margin-top: 10px;
         }
-        button:hover:not(:disabled) { 
-            filter: brightness(1.1);
-            box-shadow: 0 0 25px rgba(0, 255, 163, 0.4);
-        }
+        button:hover:not(:disabled) { transform: scale(1.02); box-shadow: 0 0 20px var(--neon); }
         button:disabled { opacity: 0.3; cursor: not-allowed; }
 
-        .status-section { 
-            margin-top: 40px; 
-            padding-top: 25px; 
-            border-top: 1px solid rgba(255,255,255,0.05); 
-        }
-        .status-input-wrap { display: flex; gap: 8px; margin-top: 12px; }
-        #statusId { flex: 1; background: rgba(255,255,255,0.03); border-style: dashed; }
+        .status-section { margin-top: 35px; border-top: 1px solid var(--border); padding-top: 25px; }
+        .status-input-wrap { display: flex; gap: 8px; margin-top: 10px; }
+        #statusId { flex: 1; background: rgba(255,255,255,0.05); }
         #statusResult {
             margin-top: 15px;
             padding: 15px;
@@ -155,38 +142,37 @@
             font-family: 'Orbitron', sans-serif;
             font-size: 13px;
             border: 1px solid var(--neon);
-            background: rgba(0, 255, 163, 0.05);
         }
     </style>
 </head>
 <body>
 
 <div class="cyber-bg"></div>
+<div class="glow-sphere"></div>
 
 <header><h1>MIGRATION HELP</h1></header>
 
 <div class="container">
-    <div class="main-card">
+    <div class="main-card" id="tiltCard">
         <h2>НОВАЯ ЗАЯВКА</h2>
         <form id="orderForm">
-            <input type="text" id="name" placeholder="ВАШЕ ИМЯ" required>
+            <input type="text" id="name" placeholder="ВАШЕ ПОЛНОЕ ИМЯ" required minlength="2">
             <input type="tel" id="phone" placeholder="+77XXXXXXXXX" required pattern="^\+7\d{10}$">
             
             <select id="service" required>
-                <option value="" disabled selected>ТИП УСЛУГИ</option>
+                <option value="" disabled selected>ВЫБЕРИТЕ ТИП УСЛУГИ</option>
                 <option value="Верификация IMEI">ВЕРИФИКАЦИЯ IMEI</option>
                 <option value="РВП / ВНЖ">РВП / ВНЖ</option>
-                <option value="ИРС">РАЗРЕШЕНИЕ ИРС</option>
-                <option value="Регистрация">РЕГИСТРАЦИЯ В МВД</option>
-                <option value="Другое">ПРОЧЕЕ</option>
+                <option value="Трудовой иммигрант">РАЗРЕШЕНИЕ ИЛИ ПРОДЛЕНИЕ ТРУДОВОГО ИММИГРАНТА</option>
+                <option value="Прочее">ПРОЧЕЕ</option>
             </select>
 
-            <textarea id="message" placeholder="СУТЬ ВОПРОСА..." required></textarea>
+            <textarea id="message" placeholder="ОПИШИТЕ ВАШ ВОПРОС..." required minlength="5"></textarea>
 
             <div class="disclaimer">
                 <input type="checkbox" id="agree" required style="width: 18px; height: 18px;">
                 <label for="agree">
-                    ЧАСТНЫЙ КОНСАЛТИНГ. НЕ ГОСУДАРСТВЕННЫЙ ОРГАН. УСЛУГИ ПЛАТНЫЕ.
+                    Я ПОДТВЕРЖДАЮ: ДАННЫЙ РЕСУРС ЯВЛЯЕТСЯ ЧАСТНЫМ КОНСАЛТИНГОМ. МЫ НЕ ПРЕДСТАВЛЯЕМ МВД РК ИЛИ ЦОН. ВСЕ УСЛУГИ ПЛАТНЫЕ.
                 </label>
             </div>
 
@@ -195,14 +181,14 @@
                 <input type="text" id="captchaIn" placeholder="ВВЕДИТЕ КОД" required>
             </div>
 
-            <button type="submit" id="submitBtn">ОТПРАВИТЬ ЗАПРОС</button>
+            <button type="submit" id="submitBtn">ОТПРАВИТЬ ЗАЯВКУ</button>
         </form>
 
         <div class="status-section">
-            <p style="font-size: 10px; text-align: center; opacity: 0.4; letter-spacing: 1px;">ПРОВЕРКА ПО ID</p>
+            <p style="font-size: 10px; text-align: center; opacity: 0.5;">ПРОВЕРКА ПО ID</p>
             <div class="status-input-wrap">
                 <input type="text" id="statusId" placeholder="ID ЗАЯВКИ" readonly>
-                <button onclick="checkStatus()" id="checkBtn" disabled style="padding: 10px 15px; font-size: 10px; margin-top:0;">НАЙТИ</button>
+                <button onclick="checkStatus()" id="checkBtn" disabled style="padding: 10px; font-size: 10px; margin-top:0;">НАЙТИ</button>
             </div>
             <div id="statusResult"></div>
         </div>
@@ -219,13 +205,20 @@
     }
     generateCaptcha();
 
+    const card = document.getElementById('tiltCard');
+    document.addEventListener('mousemove', (e) => {
+        let x = (window.innerWidth / 2 - e.pageX) / 30;
+        let y = (window.innerHeight / 2 - e.pageY) / 30;
+        card.style.transform = `rotateY(${x}deg) rotateX(${y}deg)`;
+    });
+
     document.getElementById("orderForm").onsubmit = async (e) => {
         e.preventDefault();
         const btn = document.getElementById("submitBtn");
         const captchaInput = document.getElementById("captchaIn").value.toUpperCase();
 
         if(captchaInput !== currentCode) {
-            alert("ОШИБКА: НЕВЕРНЫЙ КОД!");
+            alert("НЕВЕРНЫЙ КОД КАПЧИ!");
             return generateCaptcha();
         }
 
@@ -247,18 +240,18 @@
             const data = await res.json();
 
             if (!res.ok) {
-                alert("ОШИБКА: " + (data.error || "Сервер отклонил запрос"));
+                alert("ОШИБКА: " + (data.error || "Неизвестная ошибка"));
             } else if (data.id) {
-                alert("ЗАЯВКА №" + data.id + " УСПЕШНО СОЗДАНА");
+                alert("ЗАЯВКА №" + data.id + " УСПЕШНО СОЗДАНА!");
                 document.getElementById("statusId").value = data.id;
                 document.getElementById("checkBtn").disabled = false;
                 document.getElementById("orderForm").reset();
                 generateCaptcha();
             }
         } catch (err) {
-            alert("ОШИБКА СЕТИ: ПРОВЕРЬТЕ ИНТЕРНЕТ");
+            alert("ОШИБКА СЕТИ: ПРОВЕРЬТЕ ПОДКЛЮЧЕНИЕ");
         } finally {
-            btn.innerText = "ОТПРАВИТЬ ЗАПРОС";
+            btn.innerText = "ОТПРАВИТЬ ЗАЯВКУ";
             btn.disabled = false;
         }
     };
@@ -267,7 +260,7 @@
         const id = document.getElementById("statusId").value;
         const out = document.getElementById("statusResult");
         out.style.display = "block";
-        out.innerText = "ПОИСК В БАЗЕ...";
+        out.innerText = "ЗАГРУЗКА...";
 
         try {
             const res = await fetch(API_URL, {
@@ -276,7 +269,7 @@
                 body: JSON.stringify({ type: "status", id: id })
             });
             const d = await res.json();
-            const states = { 'pending': '⏳ В ОЖИДАНИИ', 'accepted': '✅ ПРИНЯТО', 'rejected': '❌ ОТКАЗАНО' };
+            const states = { 'pending': '⏳ В ОЖИДАНИИ', 'accepted': '✅ ПРИНЯТО', 'rejected': '❌ ОТКЛОНЕНО' };
             out.innerText = d.status === "not_found" ? "ID НЕ НАЙДЕН" : `СТАТУС: ${states[d.status] || d.status}`;
         } catch(e) { out.innerText = "ОШИБКА ЗАПРОСА"; }
     }

@@ -12,7 +12,6 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
-  // Обработка preflight запросов браузера
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
@@ -21,7 +20,7 @@ serve(async (req) => {
     const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
     const body = await req.json();
 
-    // 1. ОБРАБОТКА ПРОВЕРКИ СТАТУСА
+    // 1. ПРОВЕРКА СТАТУСА
     if (body.type === "status") {
       const { data, error } = await supabase
         .from("leads")
@@ -33,7 +32,7 @@ serve(async (req) => {
       return new Response(JSON.stringify(data), { headers: corsHeaders });
     }
 
-    // 2. ОБРАБОТКА ОБРАТНОГО ВЫЗОВА ОТ БОТА (Кнопки "Принять/Отклонить")
+    // 2. CALLBACK ОТ ТЕЛЕГРАМ
     if (body.callback_query) {
       const cb = body.callback_query;
       const [action, orderId] = cb.data.split(":");
@@ -56,24 +55,22 @@ serve(async (req) => {
       return new Response(JSON.stringify({ ok: true }), { headers: corsHeaders });
     }
 
-    // 3. ОБРАБОТКА НОВОЙ ЗАЯВКИ (ВАЛИДАЦИЯ)
+    // 3. НОВАЯ ЗАЯВКА (Валидация)
     const { name, phone, service, message } = body;
 
-    if (!name || name.trim().length < 2) throw new Error("Введите корректное имя");
-    if (!phone || !/^\+7\d{10}$/.test(phone)) throw new Error("Неверный формат телефона (+7XXXXXXXXXX)");
-    if (!service) throw new Error("Выберите услугу");
-    if (!message || message.trim().length < 5) throw new Error("Опишите вопрос подробнее");
+    if (!name || name.trim().length < 2) throw new Error("Введите имя (минимум 2 символа)");
+    if (!phone || !/^\+7\d{10}$/.test(phone)) throw new Error("Формат телефона: +77XXXXXXXXX (12 цифр)");
+    if (!service) throw new Error("Выберите услугу из списка");
+    if (!message || message.trim().length < 5) throw new Error("Опишите ваш вопрос (минимум 5 символов)");
 
-    // Сохранение в базу
     const { data, error: dbError } = await supabase
       .from("leads")
       .insert([{ name, phone, service, message, status: "pending" }])
       .select()
       .single();
 
-    if (dbError) throw dbError;
+    if (dbError) throw new Error(dbError.message);
 
-    // Отправка уведомления в Telegram
     const text = `🚀 НОВАЯ ЗАЯВКА #${data.id}\n👤 Имя: ${name}\n📞 Тел: ${phone}\n🛠 Услуга: ${service}\n📝 Вопрос: ${message}`;
     
     await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
