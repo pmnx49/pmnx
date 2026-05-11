@@ -1,0 +1,7 @@
+POST https://qwwytgkbeatehqtphzfd.supabase.co/functions/v1/telegram-notify
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF3d3l0Z2tiZWF0ZWhxdHBoemZkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwMDMwMTcsImV4cCI6MjA5MzU3OTAxN30.trruABreffAereOS7aW_gEU9NiOr-rt7qnHkS1b6fcQ
+
+{
+    "message": "Новая заявка с сайта!"
+}
